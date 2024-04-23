@@ -19,6 +19,10 @@ https://docs.risingwave.com/
 Service mesh manager for kubernetes <br>
 https://istio.io/
 
+### Helm
+Kubernetes package manager <br>
+https://helm.sh/docs/
+
 ### Argo
 K8s workflow engine <br>
 https://argoproj.github.io/workflows/
