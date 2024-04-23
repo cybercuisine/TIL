@@ -11,5 +11,4 @@ Today I Learned
 ## Machine Learning
 
 ## OSS
-
 - [Apache Kafka](./oss/kafka.md)
