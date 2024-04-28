@@ -8,3 +8,4 @@
 #   with-sources: false
 
 -e file:.
+numpy==1.26.4

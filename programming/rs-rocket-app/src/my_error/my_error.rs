@@ -1,6 +1,6 @@
 use rocket_okapi::gen::OpenApiGenerator;
 use rocket_okapi::okapi;
-use rocket_okapi::okapi::openapi3::{MediaType, Responses};
+use rocket_okapi::okapi::openapi3::{midiaType, Responses};
 use rocket_okapi::response::OpenApiResponderInner;
 use rocket_okapi::OpenApiError;
 
@@ -39,7 +39,7 @@ pub fn bad_request_response(gen: &mut OpenApiGenerator) -> okapi::openapi3::Resp
     okapi::openapi3::Response {
         description: "Bad Request".to_string(),
         content: okapi::map! {
-            "application/json".to_string() => MediaType {
+            "application/json".to_string() => midiaType {
                 schema: Some(schema),
                 ..Default::default()
             }
