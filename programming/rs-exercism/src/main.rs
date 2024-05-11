@@ -1,181 +1,122 @@
-use std::collections::HashSet;
+// The code below is a stub. Just enough to satisfy the compiler.
+// In order to pass the tests you can add-to or change any of this code.
 
-pub fn anagrams_for<'a>(word: &str, possible_anagrams: &[&'a str]) -> HashSet<&'a str> {
-    let word_lower = word.to_lowercase();
-    let sorted_word = sort_string(&word_lower);
+const EARTH_YEAR_SECONDS: f64 = 31_557_600.0;
+const MERCURY_YEAR_RATIO: f64 = 0.2408467;
+const VENUS_YEAR_RATIO: f64 = 0.61519726;
+const MARS_YEAR_RATIO: f64 = 1.8808158;
+const JUPITER_YEAR_RATIO: f64 = 11.862615;
+const SATURN_YEAR_RATIO: f64 = 29.447498;
+const URANUS_YEAR_RATIO: f64 = 84.016846;
+const NEPTUNE_YEAR_RATIO: f64 = 164.79132;
 
-    possible_anagrams
-        .iter()
-        .filter_map(|&candidate| {
-            let candidate_lower = candidate.to_lowercase();
-            let sorted_candidate = sort_string(&candidate_lower);
-            if candidate_lower != word_lower && sorted_candidate == sorted_word {
-                Some(candidate)
-            } else {
-                None
+#[derive(Debug)]
+pub struct Duration(u64);
+
+impl From<u64> for Duration {
+    fn from(s: u64) -> Self {
+        Duration(s)
+    }
+}
+
+pub trait Planet {
+    fn years_during(d: &Duration) -> f64;
+}
+
+macro_rules! impl_planet {
+    ($planet:ident, $year_ratio:expr) => {
+        pub struct $planet;
+
+        impl Planet for $planet {
+            fn years_during(d: &Duration) -> f64 {
+                d.0 as f64 / EARTH_YEAR_SECONDS / $year_ratio
             }
-        })
-        .collect()
+        }
+    };
 }
 
-fn sort_string(s: &str) -> String {
-    let mut chars: Vec<char> = s.chars().collect();
-    chars.sort_unstable();
-    chars.into_iter().collect()
-}
 
-fn main() {
-    println!("Hello, world!");
-}
 
-#[test]
-fn no_matches() {
-    let word = "diaper";
-    let inputs = &["hello", "world", "zombies", "pants"];
-    let output = anagrams_for(word, inputs);
-    let expected = HashSet::from_iter([]);
-    assert_eq!(output, expected);
+impl_planet!(Mercury, MERCURY_YEAR_RATIO);
+impl_planet!(Venus, VENUS_YEAR_RATIO);
+impl_planet!(Earth, 1.0);
+impl_planet!(Mars, MARS_YEAR_RATIO);
+impl_planet!(Jupiter, JUPITER_YEAR_RATIO);
+impl_planet!(Saturn, SATURN_YEAR_RATIO);
+impl_planet!(Uranus, URANUS_YEAR_RATIO);
+impl_planet!(Neptune, NEPTUNE_YEAR_RATIO);
+
+
+fn main() {}
+
+fn assert_in_delta(expected: f64, actual: f64) {
+    let diff: f64 = (expected - actual).abs();
+    let delta: f64 = 0.01;
+    if diff > delta {
+        panic!("Your result of {actual} should be within {delta} of the expected result {expected}")
+    }
 }
 #[test]
-fn detects_two_anagrams() {
-    let word = "solemn";
-    let inputs = &["lemons", "cherry", "melons"];
-    let output = anagrams_for(word, inputs);
-    let expected = HashSet::from_iter(["lemons", "melons"]);
-    assert_eq!(output, expected);
+fn age_on_earth() {
+    let seconds = 1000000000;
+    let duration = Duration::from(seconds);
+    let output = Earth::years_during(&duration);
+    let expected = 31.69;
+    assert_in_delta(expected, output);
 }
 #[test]
-fn does_not_detect_anagram_subsets() {
-    let word = "good";
-    let inputs = &["dog", "goody"];
-    let output = anagrams_for(word, inputs);
-    let expected = HashSet::from_iter([]);
-    assert_eq!(output, expected);
+fn age_on_mercury() {
+    let seconds = 2134835688;
+    let duration = Duration::from(seconds);
+    let output = Mercury::years_during(&duration);
+    let expected = 280.88;
+    assert_in_delta(expected, output);
 }
 #[test]
-fn detects_anagram() {
-    let word = "listen";
-    let inputs = &["enlists", "google", "inlets", "banana"];
-    let output = anagrams_for(word, inputs);
-    let expected = HashSet::from_iter(["inlets"]);
-    assert_eq!(output, expected);
+fn age_on_venus() {
+    let seconds = 189839836;
+    let duration = Duration::from(seconds);
+    let output = Venus::years_during(&duration);
+    let expected = 9.78;
+    assert_in_delta(expected, output);
 }
 #[test]
-fn detects_three_anagrams() {
-    let word = "allergy";
-    let inputs = &[
-        "gallery",
-        "ballerina",
-        "regally",
-        "clergy",
-        "largely",
-        "leading",
-    ];
-    let output = anagrams_for(word, inputs);
-    let expected = HashSet::from_iter(["gallery", "regally", "largely"]);
-    assert_eq!(output, expected);
+fn age_on_mars() {
+    let seconds = 2129871239;
+    let duration = Duration::from(seconds);
+    let output = Mars::years_during(&duration);
+    let expected = 35.88;
+    assert_in_delta(expected, output);
 }
 #[test]
-fn detects_multiple_anagrams_with_different_case() {
-    let word = "nose";
-    let inputs = &["Eons", "ONES"];
-    let output = anagrams_for(word, inputs);
-    let expected = HashSet::from_iter(["Eons", "ONES"]);
-    assert_eq!(output, expected);
+fn age_on_jupiter() {
+    let seconds = 901876382;
+    let duration = Duration::from(seconds);
+    let output = Jupiter::years_during(&duration);
+    let expected = 2.41;
+    assert_in_delta(expected, output);
 }
 #[test]
-fn does_not_detect_non_anagrams_with_identical_checksum() {
-    let word = "mass";
-    let inputs = &["last"];
-    let output = anagrams_for(word, inputs);
-    let expected = HashSet::from_iter([]);
-    assert_eq!(output, expected);
+fn age_on_saturn() {
+    let seconds = 2000000000;
+    let duration = Duration::from(seconds);
+    let output = Saturn::years_during(&duration);
+    let expected = 2.15;
+    assert_in_delta(expected, output);
 }
 #[test]
-fn detects_anagrams_case_insensitively() {
-    let word = "Orchestra";
-    let inputs = &["cashregister", "Carthorse", "radishes"];
-    let output = anagrams_for(word, inputs);
-    let expected = HashSet::from_iter(["Carthorse"]);
-    assert_eq!(output, expected);
+fn age_on_uranus() {
+    let seconds = 1210123456;
+    let duration = Duration::from(seconds);
+    let output = Uranus::years_during(&duration);
+    let expected = 0.46;
+    assert_in_delta(expected, output);
 }
 #[test]
-fn detects_anagrams_using_case_insensitive_subject() {
-    let word = "Orchestra";
-    let inputs = &["cashregister", "carthorse", "radishes"];
-    let output = anagrams_for(word, inputs);
-    let expected = HashSet::from_iter(["carthorse"]);
-    assert_eq!(output, expected);
-}
-#[test]
-fn detects_anagrams_using_case_insensitive_possible_matches() {
-    let word = "orchestra";
-    let inputs = &["cashregister", "Carthorse", "radishes"];
-    let output = anagrams_for(word, inputs);
-    let expected = HashSet::from_iter(["Carthorse"]);
-    assert_eq!(output, expected);
-}
-#[test]
-fn does_not_detect_an_anagram_if_the_original_word_is_repeated() {
-    let word = "go";
-    let inputs = &["goGoGO"];
-    let output = anagrams_for(word, inputs);
-    let expected = HashSet::from_iter([]);
-    assert_eq!(output, expected);
-}
-#[test]
-fn anagrams_must_use_all_letters_exactly_once() {
-    let word = "tapper";
-    let inputs = &["patter"];
-    let output = anagrams_for(word, inputs);
-    let expected = HashSet::from_iter([]);
-    assert_eq!(output, expected);
-}
-#[test]
-fn words_are_not_anagrams_of_themselves() {
-    let word = "BANANA";
-    let inputs = &["BANANA"];
-    let output = anagrams_for(word, inputs);
-    let expected = HashSet::from_iter([]);
-    assert_eq!(output, expected);
-}
-#[test]
-fn words_are_not_anagrams_of_themselves_even_if_letter_case_is_partially_different() {
-    let word = "BANANA";
-    let inputs = &["Banana"];
-    let output = anagrams_for(word, inputs);
-    let expected = HashSet::from_iter([]);
-    assert_eq!(output, expected);
-}
-#[test]
-fn words_are_not_anagrams_of_themselves_even_if_letter_case_is_completely_different() {
-    let word = "BANANA";
-    let inputs = &["banana"];
-    let output = anagrams_for(word, inputs);
-    let expected = HashSet::from_iter([]);
-    assert_eq!(output, expected);
-}
-#[test]
-fn words_other_than_themselves_can_be_anagrams() {
-    let word = "LISTEN";
-    let inputs = &["LISTEN", "Silent"];
-    let output = anagrams_for(word, inputs);
-    let expected = HashSet::from_iter(["Silent"]);
-    assert_eq!(output, expected);
-}
-#[test]
-fn handles_case_of_greek_letters() {
-    let word = "ΑΒΓ";
-    let inputs = &["ΒΓΑ", "ΒΓΔ", "γβα", "αβγ"];
-    let output = anagrams_for(word, inputs);
-    let expected = HashSet::from_iter(["ΒΓΑ", "γβα"]);
-    assert_eq!(output, expected);
-}
-#[test]
-fn different_characters_may_have_the_same_bytes() {
-    let word = "a⬂";
-    let inputs = &["€a"];
-    let output = anagrams_for(word, inputs);
-    let expected = HashSet::from_iter([]);
-    assert_eq!(output, expected);
+fn age_on_neptune() {
+    let seconds = 1821023456;
+    let duration = Duration::from(seconds);
+    let output = Neptune::years_during(&duration);
+    let expected = 0.35;
+    assert_in_delta(expected, output);
 }
