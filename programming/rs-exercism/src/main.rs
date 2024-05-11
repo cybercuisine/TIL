@@ -1,179 +1,178 @@
-#[derive(Debug, PartialEq, Eq)]
-pub enum Comparison {
-    Equal,
-    Sublist,
-    Superlist,
-    Unequal,
+pub fn annotate(minefield: &[&str]) -> Vec<String> {
+    let mut result = vec![];
+
+    for (r, row) in minefield.iter().enumerate() {
+        let mut annotated_row = String::new();
+
+        for (c, cell) in row.chars().enumerate() {
+            if cell == '*' {
+                annotated_row.push('*');
+            } else {
+                let mine_count = count_surrounding_mines(minefield, r, c);
+                if mine_count > 0 {
+                    annotated_row.push(char::from_digit(mine_count as u32, 10).unwrap());
+                } else {
+                    annotated_row.push(' ');
+                }
+            }
+        }
+
+        result.push(annotated_row);
+    }
+    result
 }
 
-pub fn sublist<T: PartialEq>(first_list: &[T], second_list: &[T]) -> Comparison {
-    if first_list == second_list {
-        Comparison::Equal
-    } else if is_sublist(first_list, second_list) {
-        Comparison::Sublist
-    } else if is_sublist(second_list, first_list) {
-        Comparison::Superlist
-    } else {
-        Comparison::Unequal
-    }
-}
+fn count_surrounding_mines(minefield: &[&str], row: usize, col: usize) -> usize {
+    let mut count = 0;
+    let rows = minefield.len();
+    let cols = minefield[0].len();
 
-fn is_sublist<T: PartialEq>(sub_list: &[T], super_list: &[T]) -> bool {
-    if sub_list.len() > super_list.len() {
-        return false
-    }
-    for i in 0..=super_list.len() - sub_list.len() {
-        if &super_list[i..i + sub_list.len()] == sub_list {
-            return true
+    let directions = vec![
+        (-1, -1), (-1, 0), (-1, 1),
+        (0, -1),         (0, 1),
+        (1, -1), (1, 0), (1, 1)
+    ];
+
+    for (dr, dc) in directions {
+        let nr = row as isize + dr;
+        let nc = col as isize + dc;
+
+        if nr >= 0 && nr < rows as isize && nc >= 0 && nc < cols as isize {
+            if minefield[nr as usize].chars().nth(nc as usize).unwrap() == '*' {
+                count += 1;
+            }
         }
     }
-    false
+    count
 }
+
 
 
 fn main() {}
 
-#[test]
-fn empty_lists() {
-    let list_one: &[i32] = &[];
-    let list_two: &[i32] = &[];
-    let output = sublist(list_one, list_two);
-    let expected = Comparison::Equal;
-    assert_eq!(output, expected);
+fn remove_annotations(board: &[&str]) -> Vec<String> {
+    board.iter().map(|r| remove_annotations_in_row(r)).collect()
+}
+fn remove_annotations_in_row(row: &str) -> String {
+    row.as_bytes()
+        .iter()
+        .map(|&ch| match ch {
+            b'*' => '*',
+            _ => ' ',
+        })
+        .collect()
+}
+fn run_test(test_case: &[&str]) {
+    let cleaned = remove_annotations(test_case);
+    let cleaned_strs = cleaned.iter().map(|r| &r[..]).collect::<Vec<_>>();
+    let expected = test_case.iter().map(|&r| r.to_string()).collect::<Vec<_>>();
+    assert_eq!(expected, annotate(&cleaned_strs));
 }
 #[test]
-fn empty_list_within_non_empty_list() {
-    let list_one: &[i32] = &[];
-    let list_two: &[i32] = &[1, 2, 3];
-    let output = sublist(list_one, list_two);
-    let expected = Comparison::Sublist;
-    assert_eq!(output, expected);
+fn no_rows() {
+    #[rustfmt::skip]
+    run_test(&[
+    ]);
 }
 #[test]
-fn non_empty_list_contains_empty_list() {
-    let list_one: &[i32] = &[1, 2, 3];
-    let list_two: &[i32] = &[];
-    let output = sublist(list_one, list_two);
-    let expected = Comparison::Superlist;
-    assert_eq!(output, expected);
+fn no_columns() {
+    #[rustfmt::skip]
+    run_test(&[
+        "",
+    ]);
 }
 #[test]
-fn list_equals_itself() {
-    let list_one: &[i32] = &[1, 2, 3];
-    let list_two: &[i32] = &[1, 2, 3];
-    let output = sublist(list_one, list_two);
-    let expected = Comparison::Equal;
-    assert_eq!(output, expected);
+fn no_mines() {
+    #[rustfmt::skip]
+    run_test(&[
+        "   ",
+        "   ",
+        "   ",
+    ]);
 }
 #[test]
-fn different_lists() {
-    let list_one: &[i32] = &[1, 2, 3];
-    let list_two: &[i32] = &[2, 3, 4];
-    let output = sublist(list_one, list_two);
-    let expected = Comparison::Unequal;
-    assert_eq!(output, expected);
+fn board_with_only_mines() {
+    #[rustfmt::skip]
+    run_test(&[
+        "***",
+        "***",
+        "***",
+    ]);
 }
 #[test]
-fn false_start() {
-    let list_one: &[i32] = &[1, 2, 5];
-    let list_two: &[i32] = &[0, 1, 2, 3, 1, 2, 5, 6];
-    let output = sublist(list_one, list_two);
-    let expected = Comparison::Sublist;
-    assert_eq!(output, expected);
+fn mine_surrounded_by_spaces() {
+    #[rustfmt::skip]
+    run_test(&[
+        "111",
+        "1*1",
+        "111",
+    ]);
 }
 #[test]
-fn consecutive() {
-    let list_one: &[i32] = &[1, 1, 2];
-    let list_two: &[i32] = &[0, 1, 1, 1, 2, 1, 2];
-    let output = sublist(list_one, list_two);
-    let expected = Comparison::Sublist;
-    assert_eq!(output, expected);
+fn space_surrounded_by_mines() {
+    #[rustfmt::skip]
+    run_test(&[
+        "***",
+        "*8*",
+        "***",
+    ]);
 }
 #[test]
-fn sublist_at_start() {
-    let list_one: &[i32] = &[0, 1, 2];
-    let list_two: &[i32] = &[0, 1, 2, 3, 4, 5];
-    let output = sublist(list_one, list_two);
-    let expected = Comparison::Sublist;
-    assert_eq!(output, expected);
+fn horizontal_line() {
+    #[rustfmt::skip]
+    run_test(&[
+        "1*2*1",
+    ]);
 }
 #[test]
-fn sublist_in_middle() {
-    let list_one: &[i32] = &[2, 3, 4];
-    let list_two: &[i32] = &[0, 1, 2, 3, 4, 5];
-    let output = sublist(list_one, list_two);
-    let expected = Comparison::Sublist;
-    assert_eq!(output, expected);
+fn horizontal_line_mines_at_edges() {
+    #[rustfmt::skip]
+    run_test(&[
+        "*1 1*",
+    ]);
 }
 #[test]
-fn sublist_at_end() {
-    let list_one: &[i32] = &[3, 4, 5];
-    let list_two: &[i32] = &[0, 1, 2, 3, 4, 5];
-    let output = sublist(list_one, list_two);
-    let expected = Comparison::Sublist;
-    assert_eq!(output, expected);
+fn vertical_line() {
+    #[rustfmt::skip]
+    run_test(&[
+        "1",
+        "*",
+        "2",
+        "*",
+        "1",
+    ]);
 }
 #[test]
-fn at_start_of_superlist() {
-    let list_one: &[i32] = &[0, 1, 2, 3, 4, 5];
-    let list_two: &[i32] = &[0, 1, 2];
-    let output = sublist(list_one, list_two);
-    let expected = Comparison::Superlist;
-    assert_eq!(output, expected);
+fn vertical_line_mines_at_edges() {
+    #[rustfmt::skip]
+    run_test(&[
+        "*",
+        "1",
+        " ",
+        "1",
+        "*",
+    ]);
 }
 #[test]
-fn in_middle_of_superlist() {
-    let list_one: &[i32] = &[0, 1, 2, 3, 4, 5];
-    let list_two: &[i32] = &[2, 3];
-    let output = sublist(list_one, list_two);
-    let expected = Comparison::Superlist;
-    assert_eq!(output, expected);
+fn cross() {
+    #[rustfmt::skip]
+    run_test(&[
+        " 2*2 ",
+        "25*52",
+        "*****",
+        "25*52",
+        " 2*2 ",
+    ]);
 }
 #[test]
-fn at_end_of_superlist() {
-    let list_one: &[i32] = &[0, 1, 2, 3, 4, 5];
-    let list_two: &[i32] = &[3, 4, 5];
-    let output = sublist(list_one, list_two);
-    let expected = Comparison::Superlist;
-    assert_eq!(output, expected);
-}
-#[test]
-fn first_list_missing_element_from_second_list() {
-    let list_one: &[i32] = &[1, 3];
-    let list_two: &[i32] = &[1, 2, 3];
-    let output = sublist(list_one, list_two);
-    let expected = Comparison::Unequal;
-    assert_eq!(output, expected);
-}
-#[test]
-fn second_list_missing_element_from_first_list() {
-    let list_one: &[i32] = &[1, 2, 3];
-    let list_two: &[i32] = &[1, 3];
-    let output = sublist(list_one, list_two);
-    let expected = Comparison::Unequal;
-    assert_eq!(output, expected);
-}
-#[test]
-fn first_list_missing_additional_digits_from_second_list() {
-    let list_one: &[i32] = &[1, 2];
-    let list_two: &[i32] = &[1, 22];
-    let output = sublist(list_one, list_two);
-    let expected = Comparison::Unequal;
-    assert_eq!(output, expected);
-}
-#[test]
-fn order_matters_to_a_list() {
-    let list_one: &[i32] = &[1, 2, 3];
-    let list_two: &[i32] = &[3, 2, 1];
-    let output = sublist(list_one, list_two);
-    let expected = Comparison::Unequal;
-    assert_eq!(output, expected);
-}
-#[test]
-fn same_digits_but_different_numbers() {
-    let list_one: &[i32] = &[1, 0, 1];
-    let list_two: &[i32] = &[10, 1];
-    let output = sublist(list_one, list_two);
-    let expected = Comparison::Unequal;
-    assert_eq!(output, expected);
+fn large_board() {
+    #[rustfmt::skip]
+    run_test(&[
+        "1*22*1",
+        "12*322",
+        " 123*2",
+        "112*4*",
+        "1*22*2",
+        "111111",
+    ]);
 }
