@@ -1,122 +1,179 @@
-// The code below is a stub. Just enough to satisfy the compiler.
-// In order to pass the tests you can add-to or change any of this code.
+#[derive(Debug, PartialEq, Eq)]
+pub enum Comparison {
+    Equal,
+    Sublist,
+    Superlist,
+    Unequal,
+}
 
-const EARTH_YEAR_SECONDS: f64 = 31_557_600.0;
-const MERCURY_YEAR_RATIO: f64 = 0.2408467;
-const VENUS_YEAR_RATIO: f64 = 0.61519726;
-const MARS_YEAR_RATIO: f64 = 1.8808158;
-const JUPITER_YEAR_RATIO: f64 = 11.862615;
-const SATURN_YEAR_RATIO: f64 = 29.447498;
-const URANUS_YEAR_RATIO: f64 = 84.016846;
-const NEPTUNE_YEAR_RATIO: f64 = 164.79132;
-
-#[derive(Debug)]
-pub struct Duration(u64);
-
-impl From<u64> for Duration {
-    fn from(s: u64) -> Self {
-        Duration(s)
+pub fn sublist<T: PartialEq>(first_list: &[T], second_list: &[T]) -> Comparison {
+    if first_list == second_list {
+        Comparison::Equal
+    } else if is_sublist(first_list, second_list) {
+        Comparison::Sublist
+    } else if is_sublist(second_list, first_list) {
+        Comparison::Superlist
+    } else {
+        Comparison::Unequal
     }
 }
 
-pub trait Planet {
-    fn years_during(d: &Duration) -> f64;
-}
-
-macro_rules! impl_planet {
-    ($planet:ident, $year_ratio:expr) => {
-        pub struct $planet;
-
-        impl Planet for $planet {
-            fn years_during(d: &Duration) -> f64 {
-                d.0 as f64 / EARTH_YEAR_SECONDS / $year_ratio
-            }
+fn is_sublist<T: PartialEq>(sub_list: &[T], super_list: &[T]) -> bool {
+    if sub_list.len() > super_list.len() {
+        return false
+    }
+    for i in 0..=super_list.len() - sub_list.len() {
+        if &super_list[i..i + sub_list.len()] == sub_list {
+            return true
         }
-    };
+    }
+    false
 }
-
-
-
-impl_planet!(Mercury, MERCURY_YEAR_RATIO);
-impl_planet!(Venus, VENUS_YEAR_RATIO);
-impl_planet!(Earth, 1.0);
-impl_planet!(Mars, MARS_YEAR_RATIO);
-impl_planet!(Jupiter, JUPITER_YEAR_RATIO);
-impl_planet!(Saturn, SATURN_YEAR_RATIO);
-impl_planet!(Uranus, URANUS_YEAR_RATIO);
-impl_planet!(Neptune, NEPTUNE_YEAR_RATIO);
 
 
 fn main() {}
 
-fn assert_in_delta(expected: f64, actual: f64) {
-    let diff: f64 = (expected - actual).abs();
-    let delta: f64 = 0.01;
-    if diff > delta {
-        panic!("Your result of {actual} should be within {delta} of the expected result {expected}")
-    }
+#[test]
+fn empty_lists() {
+    let list_one: &[i32] = &[];
+    let list_two: &[i32] = &[];
+    let output = sublist(list_one, list_two);
+    let expected = Comparison::Equal;
+    assert_eq!(output, expected);
 }
 #[test]
-fn age_on_earth() {
-    let seconds = 1000000000;
-    let duration = Duration::from(seconds);
-    let output = Earth::years_during(&duration);
-    let expected = 31.69;
-    assert_in_delta(expected, output);
+fn empty_list_within_non_empty_list() {
+    let list_one: &[i32] = &[];
+    let list_two: &[i32] = &[1, 2, 3];
+    let output = sublist(list_one, list_two);
+    let expected = Comparison::Sublist;
+    assert_eq!(output, expected);
 }
 #[test]
-fn age_on_mercury() {
-    let seconds = 2134835688;
-    let duration = Duration::from(seconds);
-    let output = Mercury::years_during(&duration);
-    let expected = 280.88;
-    assert_in_delta(expected, output);
+fn non_empty_list_contains_empty_list() {
+    let list_one: &[i32] = &[1, 2, 3];
+    let list_two: &[i32] = &[];
+    let output = sublist(list_one, list_two);
+    let expected = Comparison::Superlist;
+    assert_eq!(output, expected);
 }
 #[test]
-fn age_on_venus() {
-    let seconds = 189839836;
-    let duration = Duration::from(seconds);
-    let output = Venus::years_during(&duration);
-    let expected = 9.78;
-    assert_in_delta(expected, output);
+fn list_equals_itself() {
+    let list_one: &[i32] = &[1, 2, 3];
+    let list_two: &[i32] = &[1, 2, 3];
+    let output = sublist(list_one, list_two);
+    let expected = Comparison::Equal;
+    assert_eq!(output, expected);
 }
 #[test]
-fn age_on_mars() {
-    let seconds = 2129871239;
-    let duration = Duration::from(seconds);
-    let output = Mars::years_during(&duration);
-    let expected = 35.88;
-    assert_in_delta(expected, output);
+fn different_lists() {
+    let list_one: &[i32] = &[1, 2, 3];
+    let list_two: &[i32] = &[2, 3, 4];
+    let output = sublist(list_one, list_two);
+    let expected = Comparison::Unequal;
+    assert_eq!(output, expected);
 }
 #[test]
-fn age_on_jupiter() {
-    let seconds = 901876382;
-    let duration = Duration::from(seconds);
-    let output = Jupiter::years_during(&duration);
-    let expected = 2.41;
-    assert_in_delta(expected, output);
+fn false_start() {
+    let list_one: &[i32] = &[1, 2, 5];
+    let list_two: &[i32] = &[0, 1, 2, 3, 1, 2, 5, 6];
+    let output = sublist(list_one, list_two);
+    let expected = Comparison::Sublist;
+    assert_eq!(output, expected);
 }
 #[test]
-fn age_on_saturn() {
-    let seconds = 2000000000;
-    let duration = Duration::from(seconds);
-    let output = Saturn::years_during(&duration);
-    let expected = 2.15;
-    assert_in_delta(expected, output);
+fn consecutive() {
+    let list_one: &[i32] = &[1, 1, 2];
+    let list_two: &[i32] = &[0, 1, 1, 1, 2, 1, 2];
+    let output = sublist(list_one, list_two);
+    let expected = Comparison::Sublist;
+    assert_eq!(output, expected);
 }
 #[test]
-fn age_on_uranus() {
-    let seconds = 1210123456;
-    let duration = Duration::from(seconds);
-    let output = Uranus::years_during(&duration);
-    let expected = 0.46;
-    assert_in_delta(expected, output);
+fn sublist_at_start() {
+    let list_one: &[i32] = &[0, 1, 2];
+    let list_two: &[i32] = &[0, 1, 2, 3, 4, 5];
+    let output = sublist(list_one, list_two);
+    let expected = Comparison::Sublist;
+    assert_eq!(output, expected);
 }
 #[test]
-fn age_on_neptune() {
-    let seconds = 1821023456;
-    let duration = Duration::from(seconds);
-    let output = Neptune::years_during(&duration);
-    let expected = 0.35;
-    assert_in_delta(expected, output);
+fn sublist_in_middle() {
+    let list_one: &[i32] = &[2, 3, 4];
+    let list_two: &[i32] = &[0, 1, 2, 3, 4, 5];
+    let output = sublist(list_one, list_two);
+    let expected = Comparison::Sublist;
+    assert_eq!(output, expected);
+}
+#[test]
+fn sublist_at_end() {
+    let list_one: &[i32] = &[3, 4, 5];
+    let list_two: &[i32] = &[0, 1, 2, 3, 4, 5];
+    let output = sublist(list_one, list_two);
+    let expected = Comparison::Sublist;
+    assert_eq!(output, expected);
+}
+#[test]
+fn at_start_of_superlist() {
+    let list_one: &[i32] = &[0, 1, 2, 3, 4, 5];
+    let list_two: &[i32] = &[0, 1, 2];
+    let output = sublist(list_one, list_two);
+    let expected = Comparison::Superlist;
+    assert_eq!(output, expected);
+}
+#[test]
+fn in_middle_of_superlist() {
+    let list_one: &[i32] = &[0, 1, 2, 3, 4, 5];
+    let list_two: &[i32] = &[2, 3];
+    let output = sublist(list_one, list_two);
+    let expected = Comparison::Superlist;
+    assert_eq!(output, expected);
+}
+#[test]
+fn at_end_of_superlist() {
+    let list_one: &[i32] = &[0, 1, 2, 3, 4, 5];
+    let list_two: &[i32] = &[3, 4, 5];
+    let output = sublist(list_one, list_two);
+    let expected = Comparison::Superlist;
+    assert_eq!(output, expected);
+}
+#[test]
+fn first_list_missing_element_from_second_list() {
+    let list_one: &[i32] = &[1, 3];
+    let list_two: &[i32] = &[1, 2, 3];
+    let output = sublist(list_one, list_two);
+    let expected = Comparison::Unequal;
+    assert_eq!(output, expected);
+}
+#[test]
+fn second_list_missing_element_from_first_list() {
+    let list_one: &[i32] = &[1, 2, 3];
+    let list_two: &[i32] = &[1, 3];
+    let output = sublist(list_one, list_two);
+    let expected = Comparison::Unequal;
+    assert_eq!(output, expected);
+}
+#[test]
+fn first_list_missing_additional_digits_from_second_list() {
+    let list_one: &[i32] = &[1, 2];
+    let list_two: &[i32] = &[1, 22];
+    let output = sublist(list_one, list_two);
+    let expected = Comparison::Unequal;
+    assert_eq!(output, expected);
+}
+#[test]
+fn order_matters_to_a_list() {
+    let list_one: &[i32] = &[1, 2, 3];
+    let list_two: &[i32] = &[3, 2, 1];
+    let output = sublist(list_one, list_two);
+    let expected = Comparison::Unequal;
+    assert_eq!(output, expected);
+}
+#[test]
+fn same_digits_but_different_numbers() {
+    let list_one: &[i32] = &[1, 0, 1];
+    let list_two: &[i32] = &[10, 1];
+    let output = sublist(list_one, list_two);
+    let expected = Comparison::Unequal;
+    assert_eq!(output, expected);
 }
