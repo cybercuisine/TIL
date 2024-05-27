@@ -3,7 +3,6 @@ dist = [int(input()) for _ in range(N)]
 weather = [int(input()) for _ in range(M)]
 
 INF = 10 ** 10
-# 都市 i に j 日目にいるときの疲労度
 dp = [[INF] * (M + 1) for _ in range(N + 1)]
 dp[0] = [0] * (M + 1)
 
