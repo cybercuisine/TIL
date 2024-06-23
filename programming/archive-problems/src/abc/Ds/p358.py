@@ -1,23 +1,19 @@
+from sortedcontainers import SortedList
+
 N, M = map(int, input().split())
 A = list(map(int, input().split()))
 B = list(map(int, input().split()))
 
-A.sort()
-B.sort()
+sa = SortedList(A)
 
 ans = 0
-j = 0
-
-for i in range(M):
-    while B[i] > A[j]:
-        j += 1
-        if j == N:
-            print(-1)
-            exit()
-    ans += A[j]
-    j += 1
-    if j == N and i != M - 1:
+for b in B:
+    idx = sa.bisect_left(b)
+    if idx >= len(sa):
         print(-1)
         exit()
+    
+    ans += sa[idx]
+    sa.remove(sa[idx])
 
 print(ans)
