@@ -8,12 +8,6 @@ for a, s in AS:
             s -= 2 * (2 ** i)
         else:
             F.append(2 ** i)
-    if s < 0:
-        print("No")
-        continue
-    if s == 0:
-        print("Yes")
-        continue
 
     for f in reversed(F):
         if s >= f:
