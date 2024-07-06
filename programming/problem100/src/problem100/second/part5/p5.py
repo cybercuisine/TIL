@@ -1,6 +1,4 @@
 P = float(input())
-
-P = float(input())
 rlt = 10 ** 18
 
 def f(x):
