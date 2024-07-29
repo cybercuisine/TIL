@@ -1,58 +1,53 @@
-from collections import deque
+from collections import defaultdict, deque
 
-N, M = map(int, input().split())
-G = [[] for _ in range(N)]
-for _ in range(M):
-    u, v = map(int, input().split())
-    u, v = u - 1, v - 1
+
+def MI():
+    return map(int, input().split())
+
+
+N, M = MI()
+UV = [list(MI()) for i in range(M)]
+K = int(input())
+PD = [list(MI()) for i in range(K)]
+
+G = defaultdict(list)
+for u, v in UV:
     G[u].append(v)
     G[v].append(u)
 
-Q = [[] for _ in range(N + 1)]
-dst = [0] * N
-L = []
-K = int(input())
-for _ in range(K):
-    p, d = map(int, input().split())
-    p -= 1
-    L.append([p, d])
-    Q[d].append(p)
 
-for i in range(1, N + 1)[::-1]:
-    while Q[i]:
-        x = Q[i].pop()
-        if dst[x] < -i:
-            continue
-        dst[x] = -i
-        for y in G[x]:
-            if dst[y] <= dst[x] + 1:
-                continue
-            dst[y] = dst[x] + 1
-            Q[i - 1].append(y)
+def bfs(start):
+    dist = [-1] * (N + 1)
+    queue = deque([start])
+    dist[start] = 0
+    while queue:
+        node = queue.popleft()
+        for neighbor in G[node]:
+            if dist[neighbor] == -1:
+                dist[neighbor] = dist[node] + 1
+                queue.append(neighbor)
+    return dist
 
-Q = deque()
-C = ["1"] * N
-check = [100000] * N
-for i in range(N):
-    if dst[i]:
-        C[i] = "0"
-    else:
-        Q.append(i)
-        check[i] = 0
 
-while Q:
-    x = Q.popleft()
-    for y in G[x]:
-        if check[y] <= check[x] + 1:
-            continue
-        check[y] = check[x] + 1
-        Q.append(y)
+all_distances = [[]]
+for i in range(1, N + 1):
+    all_distances.append(bfs(i))
 
-for p, d in L:
-    if check[p] == d:
-        continue
-    print("No")
-    exit()
+ans = ["1"] * (N + 1)
+for pi, di in PD:
+    for j in range(1, N + 1):
+        if all_distances[pi][j] < di:
+            ans[j] = "0"
+
+for pi, di in PD:
+    cnt = float("inf")
+    for j in range(1, N + 1):
+        dist = all_distances[pi][j]
+        if ans[j] == "1":
+            cnt = min(cnt, dist)
+    if cnt != di:
+        print("No")
+        exit()
 
 print("Yes")
-print("".join(C))
+print(*ans[1:], sep="")
