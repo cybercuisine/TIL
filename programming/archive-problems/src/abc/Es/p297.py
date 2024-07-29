@@ -1,3 +1,21 @@
+from sortedcontainers import SortedSet
+
+def MI():
+    return map(int, input().split())
+
+
+N, K = MI()
+A = list(MI())
+
+S = SortedSet([0])
+for i in range(K):
+    s = S.pop(0)
+    for i in range(N):
+        S.add(s + A[i])
+
+print(S.pop(0))
+
+"""
 from collections import deque
 
 
@@ -39,3 +57,4 @@ while right - 1 > left:
 
 
 print(right)
+"""
