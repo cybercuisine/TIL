@@ -1,30 +1,22 @@
+from functools import lru_cache
+
 N = int(input())
 
 MOD = 998244353
 
-
+@lru_cache(maxsize=None)
 def rec(n):
-    global memo
-
-    if n > N:
-        return 0
-    if n == N:
-        return 1
-    if n in memo:
-        return memo[n]
-    
     result = 0
+    if n <= 1:
+        return n
     for i in range(2, 7):
-        result += rec(i * n)
+        if n % i == 0:
+            result += rec(n // i)
     
-    result *= inv5
-    result %= MOD
-    memo[n] = result
-
-    return result
+    return result * inv5 % MOD
 
 
 inv5 = pow(5, MOD - 2, MOD)
-memo = {}
 
-print(rec(1))
+
+print(rec(N))
